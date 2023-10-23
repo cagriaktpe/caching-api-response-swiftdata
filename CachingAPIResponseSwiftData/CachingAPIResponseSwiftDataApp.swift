@@ -12,6 +12,7 @@ struct CachingAPIResponseSwiftDataApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .modelContainer(for: [Photo.self])
         }
     }
 }

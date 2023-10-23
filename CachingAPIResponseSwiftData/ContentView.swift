@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct ContentView: View {
     @State private var photos: [Photo] = []
@@ -62,14 +63,40 @@ struct ContentView: View {
 
 #Preview {
     ContentView()
+        .modelContainer(for: [Photo.self])
 }
 
-struct Photo: Codable {
-    let albumId: Int
-    let id: Int
-    let title: String
-    let url: URL
-    let thumbnailUrl: URL
+@Model
+class Photo: Codable {
+    @Attribute(.unique)
+    var id: Int?
+    
+    var albumId: Int
+    var title: String
+    var url: URL
+    var thumbnailUrl: URL
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case albumId
+        case title
+        case url
+        case thumbnailUrl
+    }
+    
+    required init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        self.id = try container.decode(Int?.self, forKey: .id)
+        self.albumId = try container.decode(Int.self, forKey: .albumId)
+        self.title = try container.decode(String.self, forKey: .title)
+        self.url = try container.decode(URL.self, forKey: .url)
+        self.thumbnailUrl = try container.decode(URL.self, forKey: .thumbnailUrl)
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        // TODO: Implement
+    }
 }
 
 extension ContentView {
