@@ -9,7 +9,9 @@ import SwiftUI
 import SwiftData
 
 struct ContentView: View {
-    @State private var photos: [Photo] = []
+    @Environment(\.modelContext) private var modelContext
+    
+    @Query(sort: \Photo.id) private var photos: [Photo]
     
     var body: some View {
         NavigationStack {
@@ -106,6 +108,8 @@ extension ContentView {
         let (data, _) = try await URLSession.shared.data(for: request)
         let photos = try! JSONDecoder().decode([Photo].self, from: data)
         
-        self.photos = photos
+        photos.forEach {
+            modelContext.insert($0)
+        }
     }
 }
