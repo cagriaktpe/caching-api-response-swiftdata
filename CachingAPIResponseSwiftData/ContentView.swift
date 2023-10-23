@@ -11,6 +11,8 @@ import SwiftData
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
     
+    @AppStorage("lastFetched") private var lastFetched: Double = Date.now.timeIntervalSince1970
+    
     @Query(sort: \Photo.id) private var photos: [Photo]
     
     var body: some View {
@@ -54,7 +56,10 @@ struct ContentView: View {
             .background(Color(uiColor: .systemGroupedBackground))
             .task {
                 do {
-                    try await fetchPhotos()
+                    if hasExceedLimit() || photos.isEmpty {
+                        print("Fetching data")
+                        try await fetchPhotos()
+                    }
                 } catch {
                     print(error.localizedDescription)
                 }
@@ -111,5 +116,19 @@ extension ContentView {
         photos.forEach {
             modelContext.insert($0)
         }
+        
+        lastFetched = Date.now.timeIntervalSince1970
+    }
+    
+    func hasExceedLimit() -> Bool {
+        let timeLimit = 1
+        let currentTime = Date.now
+        let lastFetchedTime = Date(timeIntervalSince1970: lastFetched)
+        
+        guard let differenceInMins = Calendar.current.dateComponents([.second], from: lastFetchedTime, to: currentTime).second else {
+            return false
+        }
+        
+        return differenceInMins > timeLimit
     }
 }
